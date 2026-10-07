@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Structural Engineering Toolbox</title>
+<link rel="icon" type="image/png" href="lh.png">
+<style>
+/* ---------- THEME (as per ref.html) ---------- */
+:root{--brand:#054512;--dark:#4e6c2d;--ink:#263127;--line:#ccd5c8;--pale:#eef4e9}
+*{box-sizing:border-box}
+body{margin:0;background:#eef1ed;color:var(--ink);font-family:Segoe UI,Arial,sans-serif;font-size:13px}
+/* ---------- HEADER ---------- */
+header{height:42px;background:var(--brand);color:#fff;display:flex;align-items:center;padding:0 14px;gap:12px;box-shadow:0 1px 5px #0004;white-space:nowrap}
+.app{font-size:19px;font-weight:800}.ver{font-size:11px;font-weight:700;opacity:.9}.subtitle{font-size:12px;font-weight:600}
+/* ---------- LAYOUT ---------- */
+main{width:100%;max-width:none;margin:0;padding:0 14px;position:absolute;top:130px;left:0}   /* menu content starts xxx px from top of page */
+.notice{background:#fff8dd;border-left:4px solid #d29b00;margin-bottom:12px;border-radius:3px;padding:9px 12px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 1px 5px #0000000d}
+.card h2{font-size:14px;margin:0;padding:8px 11px;color:var(--dark);background:var(--pale);border-bottom:1px solid var(--line)}
+.body{padding:8px 11px}
+/* ---------- MENU ITEMS ---------- */
+.link{display:flex;align-items:center;gap:8px;padding:8px 6px;border-top:1px solid #e3e8df;color:var(--ink);text-decoration:none;border-radius:3px}
+.link:first-child{border-top:0}
+.link:hover{background:var(--pale)}
+.link .title{flex:1;font-weight:700;color:var(--brand)}
+.link .go{font-weight:800;color:var(--dark)}
+.empty{color:#687269;font-style:italic;padding:6px 0}
+.footer{text-align:center;color:#6b736b;font-size:10px;padding:8px}
+@media(max-width:900px){header{height:auto;flex-wrap:wrap;padding:6px 10px}}
+</style>
+</head>
+<body>
+<!-- ================= HEADER ================= -->
+<header>
+ <img src="logo.jpg" width="118" height="180">
+ <span class="app">Structural Engineering Toolbox</span><span class="subtitle">Application Index</span>
+</header>
+<main>
+ <div id="notice" class="notice" style="display:none"></div>
+ <div id="menu" class="grid"></div>
+ <div class="footer"><span class="ver">v001</span> | ©2026 Lianto Hardy</div>
+</main>
+
+<!-- Menu data: edit menu.js only. Loaded as a script so it works directly from disk (file:///) in MS Edge. -->
+<script src="menu.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   ENGINEERING TOOLBOX INDEX  v002
+   Menu is built at run time from window.MENU_TEXT defined in menu.js.
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- Parse menu text ---------- */
+function parseMenu(text){
+  const groups = []; let cur = null;
+  text.split(/\r?\n/).forEach(raw=>{
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) return;
+    if (line.startsWith('*')){
+      const [title, file] = line.replace(/^\*\s*/,'').split('>>>').map(s=>s && s.trim());
+      if (!title || !file) return;
+      if (!cur){ cur = {name:'General', items:[]}; groups.push(cur); }
+      cur.items.push({title, file});
+    } else {
+      cur = {name:line, items:[]}; groups.push(cur);
+    }
+  });
+  return groups;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  if (typeof window.MENU_TEXT !== 'string'){
+    $('notice').style.display = 'block';
+    $('notice').innerHTML = '<b>menu.js could not be loaded.</b> Check that menu.js is in the same folder as index.html and has no syntax error.';
+    return;
+  }
+  const groups = parseMenu(window.MENU_TEXT);
+  $('menu').innerHTML = groups.length ? groups.map(g=>`
+    <div class="card"><h2>${esc(g.name)}</h2><div class="body">
+      ${g.items.length ? g.items.map(i=>`
+        <a class="link" href="${encodeURI(i.file)}">
+          <span class="title">${esc(i.title)}</span>
+          <span class="go">&#8250;</span>
+        </a>`).join('') : '<div class="empty">No applications listed.</div>'}
+    </div></div>`).join('')
+    : '<div class="card"><h2>Menu</h2><div class="body empty">menu.js contains no entries.</div></div>';
+}
+
+render();
+</script>
+</body>
+</html>
